@@ -35,6 +35,7 @@ import static org.oscim.renderer.bucket.RenderBucket.HAIRLINE;
 import static org.oscim.renderer.bucket.RenderBucket.LINE;
 import static org.oscim.renderer.bucket.RenderBucket.MESH;
 import static org.oscim.renderer.bucket.RenderBucket.POLYGON;
+import static org.oscim.renderer.bucket.RenderBucket.SYMBOL;
 import static org.oscim.renderer.bucket.RenderBucket.TEXLINE;
 
 /**
@@ -179,6 +180,16 @@ public class RenderBuckets extends TileData {
     }
 
     /**
+     * Get or add the TextBucket for a level. Levels are ordered from
+     * bottom (0) to top
+     */
+    public TextBucket getTextBucket(int level) {
+        RenderBucket bucket = getBucket(level, SYMBOL);
+        bucket.setLevel(level);
+        return (TextBucket) bucket;
+    }
+
+    /**
      * Set new bucket items and clear previous.
      */
     public void set(RenderBucket buckets) {
@@ -247,6 +258,8 @@ public class RenderBuckets extends TileData {
                 bucket = new HairLineBucket(level);
             else if (type == CIRCLE)
                 bucket = new CircleBucket(level);
+            else if (type == SYMBOL)
+                bucket = new TextBucket();
 
             if (bucket == null)
                 throw new IllegalArgumentException();
