@@ -2,6 +2,7 @@
  * Copyright 2010, 2011, 2012 mapsforge.org
  * Copyright 2014 Hannes Janetzek
  * Copyright 2016-2017 devemux86
+ * Copyright 2016 Andrey Novikov
  *
  * This file is part of the OpenScienceMap project (http://www.opensciencemap.org).
  *
@@ -21,7 +22,7 @@ package org.oscim.core;
 import java.util.List;
 
 /**
- * A BoundingBox represents an immutable set of two latitude and two longitude
+ * A BoundingBox represents a set of two latitude and two longitude
  * coordinates.
  */
 public class BoundingBox {
@@ -34,25 +35,28 @@ public class BoundingBox {
      * The maximum latitude value of this BoundingBox in microdegrees (degrees *
      * 10^6).
      */
-    public int maxLatitudeE6;
+    public int maxLatitudeE6 = Integer.MIN_VALUE;
 
     /**
      * The maximum longitude value of this BoundingBox in microdegrees (degrees
      * * 10^6).
      */
-    public int maxLongitudeE6;
+    public int maxLongitudeE6 = Integer.MIN_VALUE;
 
     /**
      * The minimum latitude value of this BoundingBox in microdegrees (degrees *
      * 10^6).
      */
-    public int minLatitudeE6;
+    public int minLatitudeE6 = Integer.MAX_VALUE;
 
     /**
      * The minimum longitude value of this BoundingBox in microdegrees (degrees
      * * 10^6).
      */
-    public int minLongitudeE6;
+    public int minLongitudeE6 = Integer.MAX_VALUE;
+
+    public BoundingBox() {
+    }
 
     /**
      * @param minLatitudeE6  the minimum latitude in microdegrees (degrees * 10^6).
@@ -78,6 +82,27 @@ public class BoundingBox {
         this.minLongitudeE6 = (int) (minLongitude * 1E6);
         this.maxLatitudeE6 = (int) (maxLatitude * 1E6);
         this.maxLongitudeE6 = (int) (maxLongitude * 1E6);
+    }
+
+    /**
+     * Extends BoundingBox to contain specified coordinates
+     *
+     * @param latitude  point latitude
+     * @param longitude point longitude
+     */
+    public void extend(double latitude, double longitude) {
+        extend((int) (latitude * 1E6), (int) (longitude * 1E6));
+    }
+
+    public void extend(int latitudeE6, int longitudeE6) {
+        if (latitudeE6 < minLatitudeE6)
+            minLatitudeE6 = latitudeE6;
+        if (latitudeE6 > maxLatitudeE6)
+            maxLatitudeE6 = latitudeE6;
+        if (longitudeE6 < minLongitudeE6)
+            minLongitudeE6 = longitudeE6;
+        if (longitudeE6 > maxLongitudeE6)
+            maxLongitudeE6 = longitudeE6;
     }
 
     /**
@@ -233,6 +258,17 @@ public class BoundingBox {
         return new BoundingBox(minLat, minLon, maxLat, maxLon);
     }
 
+    public void extendBy(double factor) {
+        int deltaLat = maxLatitudeE6 - minLatitudeE6;
+        int deltaLon = maxLongitudeE6 - minLongitudeE6;
+        int expandLat = (int) (deltaLat * factor);
+        int expandLon = (int) (deltaLon * factor);
+        maxLatitudeE6 += expandLat;
+        minLatitudeE6 -= expandLat;
+        maxLongitudeE6 += expandLon;
+        minLongitudeE6 -= expandLon;
+    }
+
     public String format() {
         return new StringBuilder()
                 .append(minLatitudeE6 / CONVERSION_FACTOR)
@@ -313,12 +349,11 @@ public class BoundingBox {
      * @return true if this BoundingBox intersects with the given BoundingBox, false otherwise.
      */
     public boolean intersects(BoundingBox boundingBox) {
-        if (this == boundingBox) {
-            return true;
-        }
+        return intersects(this, boundingBox);
+    }
 
-        return getMaxLatitude() >= boundingBox.getMinLatitude() && getMaxLongitude() >= boundingBox.getMinLongitude()
-                && getMinLatitude() <= boundingBox.getMaxLatitude() && getMinLongitude() <= boundingBox.getMaxLongitude();
+    public static boolean intersects(BoundingBox a, BoundingBox b) {
+        return a == b || a.minLongitudeE6 < b.maxLongitudeE6 && b.minLongitudeE6 < a.maxLongitudeE6 && a.minLatitudeE6 < b.maxLatitudeE6 && b.minLatitudeE6 < a.maxLatitudeE6;
     }
 
     /**
@@ -365,13 +400,13 @@ public class BoundingBox {
     public String toString() {
         return new StringBuilder()
                 .append("BoundingBox [minLat=")
-                .append(minLatitudeE6)
+                .append(minLatitudeE6 / CONVERSION_FACTOR)
                 .append(", minLon=")
-                .append(minLongitudeE6)
+                .append(minLongitudeE6 / CONVERSION_FACTOR)
                 .append(", maxLat=")
-                .append(maxLatitudeE6)
+                .append(maxLatitudeE6 / CONVERSION_FACTOR)
                 .append(", maxLon=")
-                .append(maxLongitudeE6)
+                .append(maxLongitudeE6 / CONVERSION_FACTOR)
                 .append("]")
                 .toString();
     }

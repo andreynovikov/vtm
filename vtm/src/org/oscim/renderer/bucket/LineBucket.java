@@ -647,7 +647,7 @@ public class LineBucket extends RenderBucket {
                 } else if (line.fadeScale > v.pos.zoomLevel) {
                     continue;
                 } else {
-                    float alpha = (float) (scale > 1.2 ? scale : 1.2) - 1;
+                    float alpha = (float) (scale > 1.1 ? scale : 1.1) - 1;
                     GLUtils.setColor(uLineColor, line.color, alpha);
                 }
 

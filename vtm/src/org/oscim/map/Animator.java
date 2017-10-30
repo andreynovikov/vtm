@@ -193,6 +193,26 @@ public class Animator {
         animStart(duration, state, easingType);
     }
 
+    //FIXME Make it universal, using state flags
+    public synchronized void animateTo(long duration, MapPosition pos, boolean useBearing) {
+        float bearing = useBearing ? pos.bearing : mStartPos.bearing + mDeltaPos.bearing;
+        mMap.getMapPosition(mStartPos);
+
+        if (!useBearing && mDeltaPos.bearing == 0f)
+            bearing = mStartPos.bearing;
+
+        pos.scale = mMap.viewport().limitScale(pos.scale);
+        pos.tilt = mMap.viewport().limitTilt(pos.tilt);
+
+        mDeltaPos.set(pos.x - mStartPos.x,
+                pos.y - mStartPos.y,
+                pos.scale - mStartPos.scale,
+                bearing - mStartPos.bearing,
+                pos.tilt - mStartPos.tilt);
+
+        animStart(duration, ANIM_MOVE | ANIM_SCALE | ANIM_ROTATE | ANIM_TILT, Easing.Type.LINEAR);
+    }
+
     public void animateZoom(long duration, double scaleBy,
                             float pivotX, float pivotY) {
         animateZoom(duration, scaleBy, pivotX, pivotY, Easing.Type.LINEAR);
