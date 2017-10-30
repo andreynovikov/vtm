@@ -28,4 +28,12 @@ public class TextureRegion {
 
     public final Rect rect;
     public final TextureItem texture;
+
+    @Override
+    public int hashCode() {
+        int result = 17;
+        result = 31 * result + texture.hashCode();
+        result = 31 * result + rect.hashCode();
+        return result;
+    }
 }

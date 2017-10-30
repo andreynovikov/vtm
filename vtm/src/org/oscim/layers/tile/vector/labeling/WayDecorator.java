@@ -18,7 +18,9 @@
 package org.oscim.layers.tile.vector.labeling;
 
 import org.oscim.core.Tile;
+import org.oscim.renderer.bucket.SymbolItem;
 import org.oscim.renderer.bucket.TextItem;
+import org.oscim.theme.styles.SymbolStyle;
 import org.oscim.theme.styles.TextStyle;
 import org.oscim.utils.geom.GeometryUtils;
 import org.oscim.utils.geom.LineClipper;
@@ -218,6 +220,75 @@ public final class WayDecorator {
             ld.labels.push(t);
 
             i = last;
+        }
+    }
+
+    public static void renderSymbol(LineClipper clipper, float[] coordinates, SymbolStyle symbol,
+                                    int pos, int len, LabelTileData ld) {
+        // calculate the way name length plus some margin of safety
+        float symbolWidth = symbol.symbolWidth;
+        if (symbolWidth == 0f) {
+            if (symbol.bitmap != null)
+                symbolWidth = symbol.bitmap.getWidth();
+            else
+                symbolWidth = symbol.texture.rect.w;
+        }
+        if (symbolWidth == 0f)
+            symbolWidth = Tile.SIZE / 30;
+
+        float minWidth = symbolWidth;
+        symbolWidth = symbolWidth + symbol.repeatGap;
+
+        float length = 0f;
+
+        for (int i = pos; i < pos + len - 2; i += 2) {
+            // get the first way point coordinates
+            float prevX = coordinates[i + 0];
+            float prevY = coordinates[i + 1];
+
+            // get the current way point coordinates
+            float curX = coordinates[i + 2];
+            float curY = coordinates[i + 3];
+
+            // calculate the length of the current segment (Euclidian distance)
+            float vx = prevX - curX;
+            float vy = prevY - curY;
+            if (vx == 0 && vy == 0)
+                continue;
+
+            float a = (float) Math.sqrt(vx * vx + vy * vy);
+            length += a;
+
+            if (length >= symbolWidth || (i == pos + len - 4 && length > minWidth)) {
+                float x1, y1, x2, y2;
+                if (prevX < curX) {
+                    x1 = prevX;
+                    y1 = prevY;
+                    x2 = curX;
+                    y2 = curY;
+                } else {
+                    x1 = curX;
+                    y1 = curY;
+                    x2 = prevX;
+                    y2 = prevY;
+                }
+
+                int n = (int) Math.ceil(a / symbolWidth) + 1;
+                for (int j = 1; j < n; j++) {
+                    SymbolItem s = SymbolItem.pool.get();
+                    float x = x1 + (x2 - x1) / n * j;
+                    float y = y1 + (y2 - y1) / n * j;
+                    if (x < 0 || x > Tile.SIZE || y < 0 || y > Tile.SIZE)
+                        continue;
+                    if (symbol.bitmap != null)
+                        s.set(x, y, symbol.bitmap, symbol.hash, 0, true, symbol.merge);
+                    else
+                        s.set(x, y, symbol.texture, symbol.hash, 0, true, symbol.merge);
+                    ld.symbols.push(s);
+                }
+
+                length = a / n;
+            }
         }
     }
 

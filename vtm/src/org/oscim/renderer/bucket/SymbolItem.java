@@ -40,6 +40,7 @@ public class SymbolItem extends Inlist<SymbolItem> {
             it.texRegion = null;
             it.offset = null;
             it.rotation = 0;
+            it.merge = false;
             return true;
         }
     };
@@ -52,17 +53,25 @@ public class SymbolItem extends Inlist<SymbolItem> {
     public Bitmap bitmap;
     public PointF offset;
     public float rotation;
+    public boolean merge;
+    public int hash;
 
     public void set(float x, float y, TextureRegion texture, boolean billboard) {
         set(x, y, texture, 0, billboard);
     }
 
     public void set(float x, float y, TextureRegion texture, float rotation, boolean billboard) {
+        set(x, y, texture, texture.hashCode(), rotation, billboard, false);
+    }
+
+    public void set(float x, float y, TextureRegion texture, int hash, float rotation, boolean billboard, boolean merge) {
         this.x = x;
         this.y = y;
         this.texRegion = texture;
+        this.hash = hash;
         this.rotation = rotation;
         this.billboard = billboard;
+        this.merge = merge;
     }
 
     public void set(float x, float y, Bitmap bitmap, boolean billboard) {
@@ -70,10 +79,16 @@ public class SymbolItem extends Inlist<SymbolItem> {
     }
 
     public void set(float x, float y, Bitmap bitmap, float rotation, boolean billboard) {
+        set(x, y, bitmap, bitmap.hashCode(), rotation, billboard, false);
+    }
+
+    public void set(float x, float y, Bitmap bitmap, int hash, float rotation, boolean billboard, boolean merge) {
         this.x = x;
         this.y = y;
         this.bitmap = bitmap;
+        this.hash = hash;
         this.rotation = rotation;
         this.billboard = billboard;
+        this.merge = merge;
     }
 }

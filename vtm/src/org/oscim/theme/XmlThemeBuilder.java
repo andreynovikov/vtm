@@ -74,6 +74,7 @@ public class XmlThemeBuilder extends DefaultHandler {
     private static final Logger log = LoggerFactory.getLogger(XmlThemeBuilder.class);
 
     private static final int RENDER_THEME_VERSION = 1;
+    private static final String PREFIX_GEN = "gen:";
 
     private enum Element {
         RENDER_THEME, RENDERING_INSTRUCTION, RULE, STYLE, ATLAS, RENDERING_STYLE
@@ -125,7 +126,7 @@ public class XmlThemeBuilder extends DefaultHandler {
      */
     private static void logUnknownAttribute(String element, String name,
                                             String value, int attributeIndex) {
-        log.debug("unknown attribute in element {} () : {} = {}",
+        log.warn("unknown attribute in element {} () : {} = {}",
                 element, attributeIndex, name, value);
     }
 
@@ -1097,17 +1098,26 @@ public class XmlThemeBuilder extends DefaultHandler {
             else if ("symbol-percent".equals(name))
                 b.symbolPercent = Integer.parseInt(value);
 
+            else if ("repeat-gap".equals(name))
+                b.repeatGap = (int) (Integer.parseInt(value) * mScale);
+
+            else if ("merge".equals(name))
+                b.merge = parseBoolean(value);
+
             else if ("symbol-scaling".equals(name))
                 ; // no-op
 
             else
                 logUnknownAttribute(elementName, name, value, i);
         }
+        b.merge = true;
 
         validateExists("src", src, elementName);
 
         String lowSrc = src.toLowerCase(Locale.ENGLISH);
-        if (lowSrc.endsWith(".png") || lowSrc.endsWith(".svg")) {
+        if (src.startsWith(PREFIX_GEN)) {
+            return b.src(lowSrc.substring(PREFIX_GEN.length())).build();
+        } else if (lowSrc.endsWith(".png") || lowSrc.endsWith(".svg")) {
             try {
                 Bitmap bitmap = CanvasAdapter.getBitmapAsset(mTheme.getRelativePathPrefix(), src, b.symbolWidth, b.symbolHeight, b.symbolPercent);
                 if (bitmap != null)

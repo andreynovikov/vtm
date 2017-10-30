@@ -31,6 +31,9 @@ import org.oscim.utils.geom.OBB2D;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.HashMap;
+import java.util.HashSet;
+
 import static org.oscim.layers.tile.MapTile.State.NEW_DATA;
 import static org.oscim.layers.tile.MapTile.State.READY;
 
@@ -453,6 +456,7 @@ public class LabelPlacement {
         }
 
         /* add symbol items */
+        HashMap<Integer, HashSet<OBB2D>> merges = new HashMap<>();
         for (int i = 0, n = mTileSet.cnt; i < n; i++) {
             MapTile t = tiles[i];
             if (!t.state(READY | NEW_DATA))
@@ -476,6 +480,31 @@ public class LabelPlacement {
                 if (!isVisible(x, y))
                     continue;
 
+                if (ti.merge) {
+                    boolean merge = false;
+
+                    int w = ti.bitmap != null ? ti.bitmap.getWidth() : ti.texRegion.rect.w;
+                    int h = ti.bitmap != null ? ti.bitmap.getHeight() : ti.texRegion.rect.h;
+                    OBB2D box = new OBB2D(x, y, 0, 0, w * 2, h * 2);
+
+                    HashSet<OBB2D> boxes = merges.get(ti.hash);
+                    if (boxes != null) {
+                        for (OBB2D other : boxes) {
+                            if (box.overlaps(other)) {
+                                merge = true;
+                                break;
+                            }
+                        }
+                        if (merge)
+                            continue;
+                        boxes.add(box);
+                    } else {
+                        boxes = new HashSet<>();
+                        boxes.add(box);
+                        merges.put(ti.hash, boxes);
+                    }
+                }
+
                 SymbolItem s = SymbolItem.pool.get();
                 if (ti.bitmap != null)
                     s.bitmap = ti.bitmap;
@@ -483,7 +512,7 @@ public class LabelPlacement {
                     s.texRegion = ti.texRegion;
                 s.x = x;
                 s.y = y;
-                s.billboard = true;
+                s.billboard = ti.billboard;
                 sl.addSymbol(s);
             }
         }

@@ -30,10 +30,14 @@ public final class SymbolStyle extends RenderStyle<SymbolStyle> {
     public final Bitmap bitmap;
     public final TextureRegion texture;
     public final int hash;
+    public final String src;
 
     public final int symbolWidth;
     public final int symbolHeight;
     public final int symbolPercent;
+
+    public final int repeatGap;
+    public final boolean merge;
 
     public SymbolStyle(Bitmap bitmap) {
         this(bitmap, null, 0);
@@ -51,10 +55,14 @@ public final class SymbolStyle extends RenderStyle<SymbolStyle> {
         this.bitmap = bitmap;
         this.texture = texture;
         this.hash = hash;
+        this.src = null;
 
         this.symbolWidth = 0;
         this.symbolHeight = 0;
         this.symbolPercent = 100;
+
+        this.repeatGap = 0;
+        this.merge = false;
     }
 
     public SymbolStyle(SymbolBuilder<?> b) {
@@ -63,10 +71,14 @@ public final class SymbolStyle extends RenderStyle<SymbolStyle> {
         this.bitmap = b.bitmap;
         this.texture = b.texture;
         this.hash = b.hash;
+        this.src = b.src;
 
         this.symbolWidth = b.symbolWidth;
         this.symbolHeight = b.symbolHeight;
         this.symbolPercent = b.symbolPercent;
+
+        this.repeatGap = b.repeatGap;
+        this.merge = b.merge;
     }
 
     @Override
@@ -95,10 +107,14 @@ public final class SymbolStyle extends RenderStyle<SymbolStyle> {
         public Bitmap bitmap;
         public TextureRegion texture;
         public int hash;
+        private String src; // used by custom symbol generators
 
         public int symbolWidth;
         public int symbolHeight;
         public int symbolPercent;
+
+        public int repeatGap;
+        public boolean merge;
 
         public SymbolBuilder() {
         }
@@ -112,26 +128,38 @@ public final class SymbolStyle extends RenderStyle<SymbolStyle> {
             this.bitmap = symbol.bitmap;
             this.texture = symbol.texture;
             this.hash = symbol.hash;
+            this.src = symbol.src;
 
             this.symbolWidth = symbol.symbolWidth;
             this.symbolHeight = symbol.symbolHeight;
             this.symbolPercent = symbol.symbolPercent;
+
+            this.repeatGap = symbol.repeatGap;
+            this.merge = symbol.merge;
 
             return self();
         }
 
         public T bitmap(Bitmap bitmap) {
             this.bitmap = bitmap;
+            this.hash = bitmap.hashCode();
             return self();
         }
 
         public T texture(TextureRegion texture) {
             this.texture = texture;
+            this.hash = texture.hashCode();
             return self();
         }
 
         public T hash(int hash) {
             this.hash = hash;
+            return self();
+        }
+
+
+        public T src(String src) {
+            this.src = src;
             return self();
         }
 
@@ -150,16 +178,30 @@ public final class SymbolStyle extends RenderStyle<SymbolStyle> {
             return self();
         }
 
+        public T repeatGap(int repeatGap) {
+            this.repeatGap = repeatGap;
+            return self();
+        }
+
+        public T merge(boolean merge) {
+            this.merge = merge;
+            return self();
+        }
+
         public T reset() {
             cat = null;
 
             bitmap = null;
             texture = null;
             hash = 0;
+            src = null;
 
             symbolWidth = 0;
             symbolHeight = 0;
             symbolPercent = 100;
+
+            repeatGap = 0;
+            merge = false;
 
             return self();
         }

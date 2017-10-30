@@ -112,6 +112,12 @@ public class TextureItem extends Inlist<TextureItem> {
         return clone;
     }
 
+    public int hashCode() {
+        int result = 17;
+        result = 31 * result + id;
+        return result;
+    }
+
     /**
      * Upload Image to Texture
      * [on GL-Thread]

@@ -123,6 +123,16 @@ public class TextureAtlas extends Inlist<TextureAtlas> {
         public String toString() {
             return x + ":" + y + " " + w + "x" + h;
         }
+
+        @Override
+        public int hashCode() {
+            int result = 17;
+            result = 31 * result + x;
+            result = 31 * result + y;
+            result = 31 * result + w;
+            result = 31 * result + h;
+            return result;
+        }
     }
 
     public TextureAtlas(int width, int height) {

@@ -83,7 +83,7 @@ public class XmlAtlasThemeBuilder extends XmlThemeBuilder {
                 TextureRegion region = regionMap.get(hash);
                 if (region != null) {
                     SymbolBuilder<?> b = symbolBuilder.reset();
-                    rule.styles[i] = b.texture(region).build();
+                    rule.styles[i] = b.texture(region).repeatGap(((SymbolStyle) style).repeatGap).merge(((SymbolStyle) style).merge).build();
                 }
             }
         }
