@@ -1110,7 +1110,6 @@ public class XmlThemeBuilder extends DefaultHandler {
             else
                 logUnknownAttribute(elementName, name, value, i);
         }
-        b.merge = true;
 
         validateExists("src", src, elementName);
 

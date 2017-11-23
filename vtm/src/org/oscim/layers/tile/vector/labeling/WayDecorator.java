@@ -24,8 +24,11 @@ import org.oscim.theme.styles.SymbolStyle;
 import org.oscim.theme.styles.TextStyle;
 import org.oscim.utils.geom.GeometryUtils;
 import org.oscim.utils.geom.LineClipper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public final class WayDecorator {
+    static final Logger log = LoggerFactory.getLogger(WayDecorator.class);
 
     public static void renderText(LineClipper clipper, float[] coordinates, String string,
                                   TextStyle text, int pos, int len, LabelTileData ld) {
@@ -225,7 +228,7 @@ public final class WayDecorator {
 
     public static void renderSymbol(LineClipper clipper, float[] coordinates, SymbolStyle symbol,
                                     int pos, int len, LabelTileData ld) {
-        // calculate the way name length plus some margin of safety
+        // calculate the way symbol width plus some margin of safety
         float symbolWidth = symbol.symbolWidth;
         if (symbolWidth == 0f) {
             if (symbol.bitmap != null)
@@ -280,6 +283,7 @@ public final class WayDecorator {
                     float y = y1 + (y2 - y1) / n * j;
                     if (x < 0 || x > Tile.SIZE || y < 0 || y > Tile.SIZE)
                         continue;
+
                     if (symbol.bitmap != null)
                         s.set(x, y, symbol.bitmap, symbol.hash, 0, true, symbol.merge);
                     else

@@ -56,6 +56,22 @@ public class SymbolItem extends Inlist<SymbolItem> {
     public boolean merge;
     public int hash;
 
+    public static SymbolItem copy(SymbolItem orig) {
+
+        SymbolItem si = pool.get();
+
+        si.x = orig.x;
+        si.y = orig.y;
+
+        si.bitmap = orig.bitmap;
+        si.hash = orig.hash;
+        si.rotation = orig.rotation;
+        si.billboard = orig.billboard;
+        si.merge = orig.merge;
+
+        return si;
+    }
+
     public void set(float x, float y, TextureRegion texture, boolean billboard) {
         set(x, y, texture, 0, billboard);
     }

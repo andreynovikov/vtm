@@ -31,9 +31,6 @@ import org.oscim.utils.geom.OBB2D;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashMap;
-import java.util.HashSet;
-
 import static org.oscim.layers.tile.MapTile.State.NEW_DATA;
 import static org.oscim.layers.tile.MapTile.State.READY;
 
@@ -51,7 +48,11 @@ public class LabelPlacement {
     /**
      * thread local pool of for unused label items
      */
-    private final LabelPool mPool = new LabelPool();
+    private final LabelPool mLabelPool = new LabelPool();
+    /**
+     * thread local pool of for unused symbol items
+     */
+    private final SymbolPool mSymbolPool = new SymbolPool();
 
     private final TileSet mTileSet = new TileSet();
     private final TileRenderer mTileRenderer;
@@ -62,11 +63,16 @@ public class LabelPlacement {
      */
     private Label mLabels;
 
+    /**
+     * list of current symbols
+     */
+    private Symbol mSymbols;
+
     private float mSquareRadius;
 
     /**
      * incremented each update, to prioritize labels
-     * that became visible ealier.
+     * that became visible earlier.
      */
     private int mRelabelCnt;
 
@@ -80,13 +86,18 @@ public class LabelPlacement {
      */
     private Label removeLabel(Label l) {
         Label ret = (Label) l.next;
-        mLabels = (Label) mPool.release(mLabels, l);
+        mLabels = (Label) mLabelPool.release(mLabels, l);
         return ret;
     }
 
     public void addLabel(Label l) {
         l.next = mLabels;
         mLabels = l;
+    }
+
+    public void addSymbol(Symbol s) {
+        s.next = mSymbols;
+        mSymbols = s;
     }
 
     private byte checkOverlap(Label l) {
@@ -130,6 +141,43 @@ public class LabelPlacement {
         return 0;
     }
 
+    private byte checkOverlap(Symbol s) {
+        // unlike labels this is called only if symbol is marked for merging
+
+        for (Symbol o = mSymbols; o != null; ) {
+            if (s.bitmap != null && s.bitmap != o.bitmap) {
+                o = (Symbol) o.next;
+                continue;
+            }
+
+            if (s.texRegion != null && o.texRegion != null
+                    && s.texRegion.texture.id != o.texRegion.texture.id) {
+                o = (Symbol) o.next;
+                continue;
+            }
+
+            //check bounding box
+            if (!s.bbox.overlaps(o.bbox)) {
+                o = (Symbol) o.next;
+                continue;
+            }
+
+            if (o.active <= s.active)
+                return 1;
+
+            // TODO Add priorities?
+            /*
+            if (!o.text.caption && (o.text.priority > l.text.priority || o.length < l.length)) {
+                o = removeLabel(o);
+                continue;
+            }
+            */
+            // keep other
+            return 2;
+        }
+        return 0;
+    }
+
     private boolean isVisible(float x, float y) {
         // rough filter
         float dist = x * x + y * y;
@@ -157,10 +205,17 @@ public class LabelPlacement {
     }
 
     private Label getLabel() {
-        Label l = (Label) mPool.get();
+        Label l = (Label) mLabelPool.get();
         l.active = Integer.MAX_VALUE;
 
         return l;
+    }
+
+    private Symbol getSymbol() {
+        Symbol s = (Symbol) mSymbolPool.get();
+        s.active = Integer.MAX_VALUE;
+
+        return s;
     }
 
     private static float flipLongitude(float dx, int max) {
@@ -348,13 +403,13 @@ public class LabelPlacement {
 
             if (l.text.caption) {
                 // TODO!!!
-                l = mPool.releaseAndGetNext(l);
+                l = mLabelPool.releaseAndGetNext(l);
                 continue;
             }
 
             int diff = l.tileZ - zoom;
             if (diff > 1 || diff < -1) {
-                l = mPool.releaseAndGetNext(l);
+                l = mLabelPool.releaseAndGetNext(l);
                 continue;
             }
 
@@ -363,7 +418,7 @@ public class LabelPlacement {
 
             // plus 10 to rather keep label and avoid flickering
             if (l.width > (l.length + 10) * sscale) {
-                l = mPool.releaseAndGetNext(l);
+                l = mLabelPool.releaseAndGetNext(l);
                 continue;
             }
 
@@ -376,7 +431,7 @@ public class LabelPlacement {
             placeLabelFrom(l, l.item);
 
             if (!wayIsVisible(l)) {
-                l = mPool.releaseAndGetNext(l);
+                l = mLabelPool.releaseAndGetNext(l);
                 continue;
             }
 
@@ -397,7 +452,7 @@ public class LabelPlacement {
                 addLabel(ll);
                 continue;
             }
-            l = mPool.releaseAndGetNext(l);
+            l = mLabelPool.releaseAndGetNext(l);
         }
 
         /* add way labels */
@@ -438,6 +493,7 @@ public class LabelPlacement {
                     s.x = ti.x;
                     s.y = ti.y;
                     s.billboard = true;
+                    // TODO Discover what these symbols are
                     sl.addSymbol(s);
                 }
                 continue;
@@ -455,8 +511,51 @@ public class LabelPlacement {
             }
         }
 
+        Symbol prevSymbols = mSymbols;
+        mSymbols = null;
+        Symbol s = null;
+
+        for (s = prevSymbols; s != null; ) {
+            if (s.tileZ != zoom) {
+                s = mSymbolPool.releaseAndGetNext(s);
+                continue;
+            }
+
+            float sscale = (float) (pos.scale / (1 << s.tileZ));
+
+            float dx = (float) (s.tileX * Tile.SIZE - tileX);
+            float dy = (float) (s.tileY * Tile.SIZE - tileY);
+
+            dx = flipLongitude(dx, maxx);
+            s.x = (float) ((dx + s.item.x) * sscale);
+            s.y = (float) ((dy + s.item.y) * sscale);
+
+            if (!isVisible(s.x, s.y)) {
+                s = mSymbolPool.releaseAndGetNext(s);
+                continue;
+            }
+
+            // TODO Move w and h to Symbol
+            int w = s.bitmap != null ? s.bitmap.getWidth() : s.texRegion.rect.w;
+            int h = s.bitmap != null ? s.bitmap.getHeight() : s.texRegion.rect.h;
+            s.bbox.set(s.x, s.y, s.x - w / 2, s.y - h / 2, w * 1.2f, h * 1.2f);
+
+            byte overlaps = s.merge ? checkOverlap(s) : 0;
+
+            if (overlaps == 0) {
+                Symbol ss = s;
+                ss.item = SymbolItem.copy(s.item);
+                s = (Symbol) s.next;
+
+                ss.next = null;
+                addSymbol(ss);
+                continue;
+            }
+
+            s = mSymbolPool.releaseAndGetNext(s);
+        }
+
         /* add symbol items */
-        HashMap<Integer, HashSet<OBB2D>> merges = new HashMap<>();
         for (int i = 0, n = mTileSet.cnt; i < n; i++) {
             MapTile t = tiles[i];
             if (!t.state(READY | NEW_DATA))
@@ -470,55 +569,62 @@ public class LabelPlacement {
             if (ld == null)
                 continue;
 
-            for (SymbolItem ti : ld.symbols) {
-                if (ti.bitmap == null && ti.texRegion == null)
+            O:
+            for (SymbolItem si : ld.symbols) {
+                if (si.bitmap == null && si.texRegion == null)
                     continue;
 
-                int x = (int) ((dx + ti.x) * scale);
-                int y = (int) ((dy + ti.y) * scale);
+                int x = (int) ((dx + si.x) * scale);
+                int y = (int) ((dy + si.y) * scale);
 
                 if (!isVisible(x, y))
                     continue;
 
-                if (ti.merge) {
-                    boolean merge = false;
-
-                    int w = ti.bitmap != null ? ti.bitmap.getWidth() : ti.texRegion.rect.w;
-                    int h = ti.bitmap != null ? ti.bitmap.getHeight() : ti.texRegion.rect.h;
-                    OBB2D box = new OBB2D(x, y, 0, 0, w * 2, h * 2);
-
-                    HashSet<OBB2D> boxes = merges.get(ti.hash);
-                    if (boxes != null) {
-                        for (OBB2D other : boxes) {
-                            if (box.overlaps(other)) {
-                                merge = true;
-                                break;
-                            }
-                        }
-                        if (merge)
-                            continue;
-                        boxes.add(box);
-                    } else {
-                        boxes = new HashSet<>();
-                        boxes.add(box);
-                        merges.put(ti.hash, boxes);
-                    }
-                }
-
-                SymbolItem s = SymbolItem.pool.get();
-                if (ti.bitmap != null)
-                    s.bitmap = ti.bitmap;
-                else
-                    s.texRegion = ti.texRegion;
+                // acquire a SymbolItem to add to SymbolLayer
+                if (s == null)
+                    s = getSymbol();
+                s.clone(si);
                 s.x = x;
                 s.y = y;
-                s.billboard = ti.billboard;
-                sl.addSymbol(s);
+                int w = si.bitmap != null ? si.bitmap.getWidth() : si.texRegion.rect.w;
+                int h = si.bitmap != null ? si.bitmap.getHeight() : si.texRegion.rect.h;
+                if (s.bbox == null)
+                    s.bbox = new OBB2D(x, y, x - w / 2, y - h / 2, w * 1.2f, h * 1.2f);
+                else
+                    s.bbox.set(x, y, x - w / 2, y - h / 2, w * 1.2f, h * 1.2f);
+
+                for (Symbol o = mSymbols; o != null; ) {
+                    if (s.merge && s.bbox.overlaps(o.bbox)) {
+                        /*
+                        if (l.text.priority < o.text.priority) {
+                            o = removeLabel(o);
+                            continue;
+                        }
+                        */
+                        continue O;
+                    }
+                    o = (Symbol) o.next;
+                }
+
+                s.item = SymbolItem.copy(si);
+                s.tileX = t.tileX;
+                s.tileY = t.tileY;
+                s.tileZ = t.zoomLevel;
+                s.active = mRelabelCnt;
+                addSymbol(s);
+                s = null;
             }
         }
 
+        for (s = mSymbols; s != null; s = (Symbol) s.next) {
+            SymbolItem item = SymbolItem.copy(s.item);
+            item.x = s.x;
+            item.y = s.y;
+            sl.addSymbol(item);
+        }
+
         /* temporary used Label */
-        l = (Label) mPool.release(l);
+        l = (Label) mLabelPool.release(l);
 
         /* draw text to bitmaps and create vertices */
         work.textLayer.labels = groupLabels(mLabels);
@@ -532,7 +638,7 @@ public class LabelPlacement {
     }
 
     public void cleanup() {
-        mLabels = (Label) mPool.releaseAll(mLabels);
+        mLabels = (Label) mLabelPool.releaseAll(mLabels);
         mTileSet.releaseTiles();
     }
 
