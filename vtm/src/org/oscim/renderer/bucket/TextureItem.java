@@ -43,7 +43,7 @@ public class TextureItem extends Inlist<TextureItem> {
     /**
      * texture ID
      */
-    int id;
+    public int id;
 
     /**
      * current settings

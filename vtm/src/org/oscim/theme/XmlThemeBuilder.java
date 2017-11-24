@@ -609,7 +609,7 @@ public class XmlThemeBuilder extends DefaultHandler {
                 x += f;
                 transparent = !transparent;
             }
-            b.texture = new TextureItem(bitmap);
+            b.texture = new TextureItem(Utils.potBitmap(bitmap));
             b.texture.mipmap = true;
             b.randomOffset = false;
             b.stipple = width;
@@ -626,7 +626,7 @@ public class XmlThemeBuilder extends DefaultHandler {
                 Canvas canvas = CanvasAdapter.newCanvas();
                 canvas.setBitmap(bitmap);
                 canvas.drawBitmap(b.texture.bitmap, b.repeatStart, 0);
-                b.texture = new TextureItem(bitmap);
+                b.texture = new TextureItem(Utils.potBitmap(bitmap));
                 b.texture.mipmap = true;
                 b.fixed = true;
                 b.randomOffset = false;
@@ -1110,7 +1110,6 @@ public class XmlThemeBuilder extends DefaultHandler {
             else
                 logUnknownAttribute(elementName, name, value, i);
         }
-        b.merge = true;
 
         validateExists("src", src, elementName);
 

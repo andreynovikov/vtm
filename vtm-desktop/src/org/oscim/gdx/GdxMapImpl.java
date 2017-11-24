@@ -1,7 +1,5 @@
 /*
- * Copyright 2014 Hannes Janetzek
- *
- * This file is part of the OpenScienceMap project (http://www.opensciencemap.org).
+ * Copyright 2017 devemux86
  *
  * This program is free software: you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free Software
@@ -14,25 +12,11 @@
  * You should have received a copy of the GNU Lesser General Public License along with
  * this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package org.oscim.tiling.source.geojson;
+package org.oscim.gdx;
 
-import org.oscim.core.MapElement;
-import org.oscim.core.Tag;
-
-import java.util.Map;
-
-public class OsmBuildingJsonTileSource extends GeoJsonTileSource {
-
-    public OsmBuildingJsonTileSource() {
-        super("http://tile.openstreetmap.us/vectiles-buildings");
-    }
-
-    Tag mTagBuilding = new Tag(Tag.KEY_BUILDING, Tag.VALUE_YES);
-
+public class GdxMapImpl extends GdxMap {
     @Override
-    public void decodeTags(MapElement mapElement, Map<String, Object> properties) {
-
-        mapElement.tags.add(mTagBuilding);
-
+    public void dispose() {
+        System.exit(0);
     }
 }
