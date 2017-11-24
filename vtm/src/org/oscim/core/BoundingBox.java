@@ -3,6 +3,7 @@
  * Copyright 2014 Hannes Janetzek
  * Copyright 2016-2017 devemux86
  * Copyright 2016 Andrey Novikov
+ * Copyright 2017 Luca Osten
  *
  * This file is part of the OpenScienceMap project (http://www.opensciencemap.org).
  *
@@ -400,13 +401,13 @@ public class BoundingBox {
     public String toString() {
         return new StringBuilder()
                 .append("BoundingBox [minLat=")
-                .append(minLatitudeE6 / CONVERSION_FACTOR)
+                .append(getMinLatitude())
                 .append(", minLon=")
-                .append(minLongitudeE6 / CONVERSION_FACTOR)
+                .append(getMinLongitude())
                 .append(", maxLat=")
-                .append(maxLatitudeE6 / CONVERSION_FACTOR)
+                .append(getMaxLatitude())
                 .append(", maxLon=")
-                .append(maxLongitudeE6 / CONVERSION_FACTOR)
+                .append(getMaxLongitude())
                 .append("]")
                 .toString();
     }

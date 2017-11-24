@@ -1,5 +1,6 @@
 /*
  * Copyright 2016 devemux86
+ * Copyright 2017 Luca Osten
  *
  * This file is part of the OpenScienceMap project (http://www.opensciencemap.org).
  *
@@ -118,7 +119,7 @@ public class ViewController extends Viewport {
             mPos.y = mMinY;
     }
 
-    private Point applyRotation(double mx, double my) {
+    private synchronized Point applyRotation(double mx, double my) {
         if (mPos.bearing == 0) {
             mMovePoint.x = mx;
             mMovePoint.y = my;
