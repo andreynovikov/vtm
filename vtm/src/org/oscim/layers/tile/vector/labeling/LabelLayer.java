@@ -106,8 +106,10 @@ public class LabelLayer extends Layer implements Map.UpdateListener, TileManager
     @Override
     public void onMapEvent(Event event, MapPosition mapPosition) {
 
-        if (event == Map.CLEAR_EVENT)
+        if (event == Map.CLEAR_EVENT) {
             mWorker.cancel(true);
+            mLabelPlacer.clear();
+        }
 
         if (!isEnabled())
             return;
