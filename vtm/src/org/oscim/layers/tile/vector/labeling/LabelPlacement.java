@@ -574,11 +574,25 @@ public class LabelPlacement {
                 if (si.bitmap == null && si.texRegion == null)
                     continue;
 
-                int x = (int) ((dx + si.x) * scale);
-                int y = (int) ((dy + si.y) * scale);
+                float x = (dx + si.x) * (float) scale;
+                float y = (dy + si.y) * (float) scale;
 
                 if (!isVisible(x, y))
                     continue;
+
+                for (Symbol o = mSymbols; o != null; ) {
+                    if (t.tileX == o.tileX && t.tileY == o.tileY && t.zoomLevel == o.tileZ
+                            && si.x == o.item.x && si.y == o.item.y) {
+                        if (si.bitmap != null && si.bitmap == o.bitmap) {
+                            continue O;
+                        }
+                        if (si.texRegion != null && o.texRegion != null
+                                && si.texRegion.texture.id == o.texRegion.texture.id) {
+                            continue O;
+                        }
+                    }
+                    o = (Symbol) o.next;
+                }
 
                 // acquire a SymbolItem to add to SymbolLayer
                 if (s == null)
