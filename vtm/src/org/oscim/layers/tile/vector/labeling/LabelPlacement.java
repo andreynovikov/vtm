@@ -28,6 +28,7 @@ import org.oscim.renderer.bucket.TextItem;
 import org.oscim.theme.styles.TextStyle;
 import org.oscim.utils.FastMath;
 import org.oscim.utils.geom.OBB2D;
+import org.oscim.utils.pool.Inlist;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -527,18 +528,15 @@ public class LabelPlacement {
             float dy = (float) (s.tileY * Tile.SIZE - tileY);
 
             dx = flipLongitude(dx, maxx);
-            s.x = (float) ((dx + s.item.x) * sscale);
-            s.y = (float) ((dy + s.item.y) * sscale);
+            s.x = (dx + s.item.x) * sscale;
+            s.y = (dy + s.item.y) * sscale;
 
             if (!isVisible(s.x, s.y)) {
                 s = mSymbolPool.releaseAndGetNext(s);
                 continue;
             }
 
-            // TODO Move w and h to Symbol
-            int w = s.bitmap != null ? s.bitmap.getWidth() : s.texRegion.rect.w;
-            int h = s.bitmap != null ? s.bitmap.getHeight() : s.texRegion.rect.h;
-            s.bbox.set(s.x, s.y, s.x - w / 2, s.y - h / 2, w * 1.2f, h * 1.2f);
+            s.bbox.set(s.x, s.y, s.x - s.w / 2, s.y - s.h / 2, s.w * 1.2f, s.h * 1.2f);
 
             byte overlaps = s.merge ? checkOverlap(s) : 0;
 
@@ -600,12 +598,12 @@ public class LabelPlacement {
                 s.clone(si);
                 s.x = x;
                 s.y = y;
-                int w = si.bitmap != null ? si.bitmap.getWidth() : si.texRegion.rect.w;
-                int h = si.bitmap != null ? si.bitmap.getHeight() : si.texRegion.rect.h;
+                s.w = si.bitmap != null ? si.bitmap.getWidth() : si.texRegion.rect.w;
+                s.h = si.bitmap != null ? si.bitmap.getHeight() : si.texRegion.rect.h;
                 if (s.bbox == null)
-                    s.bbox = new OBB2D(x, y, x - w / 2, y - h / 2, w * 1.2f, h * 1.2f);
+                    s.bbox = new OBB2D(s.x, s.y, s.x - s.w / 2, s.y - s.h / 2, s.w * 1.2f, s.h * 1.2f);
                 else
-                    s.bbox.set(x, y, x - w / 2, y - h / 2, w * 1.2f, h * 1.2f);
+                    s.bbox.set(s.x, s.y, s.x - s.w / 2, s.y - s.h / 2, s.w * 1.2f, s.h * 1.2f);
 
                 for (Symbol o = mSymbols; o != null; ) {
                     if (s.merge && s.bbox.overlaps(o.bbox)) {
@@ -629,6 +627,9 @@ public class LabelPlacement {
                 s = null;
             }
         }
+
+        // reverse list to keep order constant on each update
+        mSymbols = Inlist.reverse(mSymbols);
 
         for (s = mSymbols; s != null; s = (Symbol) s.next) {
             SymbolItem item = SymbolItem.copy(s.item);

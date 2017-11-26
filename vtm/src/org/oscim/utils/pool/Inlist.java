@@ -336,6 +336,29 @@ public class Inlist<T extends Inlist<T>> {
     }
 
     /**
+     * Reverse list.
+     */
+    @SuppressWarnings("unchecked")
+    public static <T extends Inlist> T reverse(T list) {
+        T tmp;
+        T itr = list;
+        T reversed = null;
+
+        while (itr != null) {
+                /* keep next */
+            tmp = (T) itr.next;
+
+                /* push itr onto new list */
+            itr.next = reversed;
+            reversed = itr;
+
+            itr = tmp;
+        }
+
+        return reversed;
+    }
+
+    /**
      * Prepend 'item' relative to 'other'.
      *
      * @param list  the list

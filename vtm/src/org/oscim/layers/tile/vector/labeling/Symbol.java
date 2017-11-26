@@ -5,6 +5,8 @@ import org.oscim.utils.geom.OBB2D;
 
 public class Symbol extends SymbolItem {
     SymbolItem item;
+    public int w;
+    public int h;
     public OBB2D bbox;
 
     int tileX;
