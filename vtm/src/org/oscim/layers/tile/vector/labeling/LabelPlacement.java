@@ -143,38 +143,73 @@ public class LabelPlacement {
     }
 
     private byte checkOverlap(Symbol s) {
-        // unlike labels this is called only if symbol is marked for merging
-
-        for (Symbol o = mSymbols; o != null; ) {
-            if (s.bitmap != null && s.bitmap != o.bitmap) {
-                o = (Symbol) o.next;
-                continue;
+        // if symbol is marked to not overlap text check overlaps with text labels
+        if (!s.textOverlap) {
+            for (Label o = mLabels; o != null; ) {
+                if (s.bbox.overlaps(o.bbox)) {
+                    // drop symbol as it overlaps text
+                    return 1;
+                }
+                o = (Label) o.next;
             }
+        }
+        // if symbol is marked for merge check overlaps with other symbols
+        if (s.mergeGap >= 0) {
+            for (Symbol o = mSymbols; o != null; ) {
+                if (s.mergeGroup == null) {
+                    // if bitmaps differ skip merging
+                    if (s.bitmap != null && s.bitmap != o.bitmap) {
+                        o = (Symbol) o.next;
+                        continue;
+                    }
 
-            if (s.texRegion != null && o.texRegion != null
-                    && s.texRegion.texture.id != o.texRegion.texture.id) {
-                o = (Symbol) o.next;
-                continue;
+                    // if texture regions differ skip merging
+                    if (s.texRegion != null && o.texRegion != null
+                            && s.texRegion.texture.id != o.texRegion.texture.id) {
+                        o = (Symbol) o.next;
+                        continue;
+                    }
+                } else if (!s.mergeGroup.equals(o.mergeGroup)) {
+                    // if merge group is defined groups differ skip merging
+                    o = (Symbol) o.next;
+                    continue;
+                }
+
+                // check distance
+                if (s.mergeGap > 0) {
+                    // calculate Euclidian distance
+                    float vx = s.x - o.x;
+                    float vy = s.y - o.y;
+                    float a = (float) Math.sqrt(vx * vx + vy * vy);
+                    if (a < s.mergeGap)
+                        return 1;
+                }
+
+                // check bounding box
+                if (!s.bbox.overlaps(o.bbox)) {
+                    o = (Symbol) o.next;
+                    continue;
+                }
+
+                if (o.active <= s.active)
+                    return 1;
+
+                // TODO Add priorities?
+                /*
+                if (l.text.priority < o.text.priority) {
+                    o = removeLabel(o);
+                    continue;
+                }
+                */
+                /*
+                if (!o.text.caption && (o.text.priority > l.text.priority || o.length < l.length)) {
+                    o = removeLabel(o);
+                    continue;
+                }
+                */
+                // keep other
+                return 2;
             }
-
-            //check bounding box
-            if (!s.bbox.overlaps(o.bbox)) {
-                o = (Symbol) o.next;
-                continue;
-            }
-
-            if (o.active <= s.active)
-                return 1;
-
-            // TODO Add priorities?
-            /*
-            if (!o.text.caption && (o.text.priority > l.text.priority || o.length < l.length)) {
-                o = removeLabel(o);
-                continue;
-            }
-            */
-            // keep other
-            return 2;
         }
         return 0;
     }
@@ -538,9 +573,7 @@ public class LabelPlacement {
 
             s.bbox.set(s.x, s.y, s.x - s.w / 2, s.y - s.h / 2, s.w * 1.2f, s.h * 1.2f);
 
-            byte overlaps = s.merge ? checkOverlap(s) : 0;
-
-            if (overlaps == 0) {
+            if (checkOverlap(s) == 0) {
                 Symbol ss = s;
                 ss.item = SymbolItem.copy(s.item);
                 s = (Symbol) s.next;
@@ -605,17 +638,8 @@ public class LabelPlacement {
                 else
                     s.bbox.set(s.x, s.y, s.x - s.w / 2, s.y - s.h / 2, s.w * 1.2f, s.h * 1.2f);
 
-                for (Symbol o = mSymbols; o != null; ) {
-                    if (s.merge && s.bbox.overlaps(o.bbox)) {
-                        /*
-                        if (l.text.priority < o.text.priority) {
-                            o = removeLabel(o);
-                            continue;
-                        }
-                        */
-                        continue O;
-                    }
-                    o = (Symbol) o.next;
+                if (checkOverlap(s) != 0) {
+                    continue;
                 }
 
                 s.item = SymbolItem.copy(si);

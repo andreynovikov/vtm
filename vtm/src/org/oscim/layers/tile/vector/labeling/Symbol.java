@@ -13,13 +13,15 @@ public class Symbol extends SymbolItem {
     int tileY;
     int tileZ;
 
-    public int active;
+    int active;
 
     public Symbol clone(SymbolItem si) {
         this.bitmap = si.bitmap;
         this.texRegion = si.texRegion;
         this.billboard = si.billboard;
-        this.merge = si.merge;
+        this.mergeGap = si.mergeGap;
+        this.mergeGroup = si.mergeGroup;
+        this.textOverlap = si.textOverlap;
         return this;
     }
 }
