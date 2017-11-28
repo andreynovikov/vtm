@@ -21,6 +21,7 @@ public class Symbol extends SymbolItem {
         this.billboard = si.billboard;
         this.mergeGap = si.mergeGap;
         this.mergeGroup = si.mergeGroup;
+        this.mergeGroupGap = si.mergeGroupGap;
         this.textOverlap = si.textOverlap;
         return this;
     }

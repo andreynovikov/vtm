@@ -285,9 +285,9 @@ public final class WayDecorator {
                         continue;
 
                     if (symbol.bitmap != null)
-                        s.set(x, y, symbol.bitmap, symbol.hash, 0, true, symbol.mergeGap, symbol.mergeGroup, symbol.textOverlap);
+                        s.set(x, y, symbol.bitmap, symbol.hash, 0, true, symbol.mergeGap, symbol.mergeGroup, symbol.mergeGroupGap, symbol.textOverlap);
                     else
-                        s.set(x, y, symbol.texture, symbol.hash, 0, true, symbol.mergeGap, symbol.mergeGroup, symbol.textOverlap);
+                        s.set(x, y, symbol.texture, symbol.hash, 0, true, symbol.mergeGap, symbol.mergeGroup, symbol.mergeGroupGap, symbol.textOverlap);
                     ld.symbols.push(s);
                 }
 

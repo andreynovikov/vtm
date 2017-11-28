@@ -156,13 +156,13 @@ public class LabelPlacement {
         // if symbol is marked for merge check overlaps with other symbols
         if (s.mergeGap >= 0) {
             for (Symbol o = mSymbols; o != null; ) {
+                int gap = s.mergeGap;
                 if (s.mergeGroup == null) {
                     // if bitmaps differ skip merging
                     if (s.bitmap != null && s.bitmap != o.bitmap) {
                         o = (Symbol) o.next;
                         continue;
                     }
-
                     // if texture regions differ skip merging
                     if (s.texRegion != null && o.texRegion != null
                             && s.texRegion.texture.id != o.texRegion.texture.id) {
@@ -170,18 +170,25 @@ public class LabelPlacement {
                         continue;
                     }
                 } else if (!s.mergeGroup.equals(o.mergeGroup)) {
-                    // if merge group is defined groups differ skip merging
+                    // if merge groups differ skip merging
                     o = (Symbol) o.next;
                     continue;
+                } else {
+                    // select group gap if bitmaps are not the same
+                    if ((s.bitmap != null && s.bitmap != o.bitmap) ||
+                            (s.texRegion != null && o.texRegion != null
+                            && s.texRegion.texture.id != o.texRegion.texture.id)) {
+                        gap = s.mergeGroupGap;
+                    }
                 }
 
                 // check distance
-                if (s.mergeGap > 0) {
+                if (gap > 0) {
                     // calculate Euclidian distance
                     float vx = s.x - o.x;
                     float vy = s.y - o.y;
                     float a = (float) Math.sqrt(vx * vx + vy * vy);
-                    if (a < s.mergeGap)
+                    if (a < gap)
                         return 1;
                 }
 
