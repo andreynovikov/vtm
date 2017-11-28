@@ -37,7 +37,9 @@ public final class SymbolStyle extends RenderStyle<SymbolStyle> {
     public final int symbolPercent;
 
     public final int repeatGap;
-    public final boolean merge;
+    public final int mergeGap;
+    public final String mergeGroup;
+    public final boolean textOverlap;
 
     public SymbolStyle(Bitmap bitmap) {
         this(bitmap, null, 0);
@@ -62,7 +64,9 @@ public final class SymbolStyle extends RenderStyle<SymbolStyle> {
         this.symbolPercent = 100;
 
         this.repeatGap = 0;
-        this.merge = false;
+        this.mergeGap = -1;
+        this.mergeGroup = null;
+        this.textOverlap = true;
     }
 
     public SymbolStyle(SymbolBuilder<?> b) {
@@ -78,7 +82,9 @@ public final class SymbolStyle extends RenderStyle<SymbolStyle> {
         this.symbolPercent = b.symbolPercent;
 
         this.repeatGap = b.repeatGap;
-        this.merge = b.merge;
+        this.mergeGap = b.mergeGap;
+        this.mergeGroup = b.mergeGroup;
+        this.textOverlap = b.textOverlap;
     }
 
     @Override
@@ -114,7 +120,9 @@ public final class SymbolStyle extends RenderStyle<SymbolStyle> {
         public int symbolPercent;
 
         public int repeatGap;
-        public boolean merge;
+        public int mergeGap;
+        public String mergeGroup;
+        public boolean textOverlap = true;
 
         public SymbolBuilder() {
         }
@@ -135,7 +143,9 @@ public final class SymbolStyle extends RenderStyle<SymbolStyle> {
             this.symbolPercent = symbol.symbolPercent;
 
             this.repeatGap = symbol.repeatGap;
-            this.merge = symbol.merge;
+            this.mergeGap = symbol.mergeGap;
+            this.mergeGroup = symbol.mergeGroup;
+            this.textOverlap = symbol.textOverlap;
 
             return self();
         }
@@ -183,8 +193,20 @@ public final class SymbolStyle extends RenderStyle<SymbolStyle> {
             return self();
         }
 
-        public T merge(boolean merge) {
-            this.merge = merge;
+        public T mergeGap(int mergeGap) {
+            this.mergeGap = mergeGap;
+            return self();
+        }
+
+        public T mergeGroup(String mergeGroup) {
+            this.mergeGroup = mergeGroup;
+            if (this.mergeGap == -1)
+                this.mergeGap = 0;
+            return self();
+        }
+
+        public T textOverlap(boolean textOverlap) {
+            this.textOverlap = textOverlap;
             return self();
         }
 
@@ -201,7 +223,9 @@ public final class SymbolStyle extends RenderStyle<SymbolStyle> {
             symbolPercent = 100;
 
             repeatGap = 0;
-            merge = false;
+            mergeGap = -1;
+            mergeGroup = null;
+            textOverlap = true;
 
             return self();
         }

@@ -1101,8 +1101,14 @@ public class XmlThemeBuilder extends DefaultHandler {
             else if ("repeat-gap".equals(name))
                 b.repeatGap = (int) (Integer.parseInt(value) * mScale);
 
-            else if ("merge".equals(name))
-                b.merge = parseBoolean(value);
+            else if ("merge-gap".equals(name))
+                b.mergeGap = (int) (Integer.parseInt(value) * mScale);
+
+            else if ("merge-group".equals(name))
+                b.mergeGroup(value);
+
+            else if ("text-overlap".equals(name))
+                b.textOverlap = parseBoolean(value);
 
             else if ("symbol-scaling".equals(name))
                 ; // no-op
