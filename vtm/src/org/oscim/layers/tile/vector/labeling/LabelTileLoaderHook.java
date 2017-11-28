@@ -161,9 +161,9 @@ public class LabelTileLoaderHook implements TileLoaderThemeHook {
 
                 SymbolItem it = SymbolItem.pool.get();
                 if (symbol.bitmap != null)
-                    it.set(x, y, symbol.bitmap, 0, 0f, true, symbol.mergeGap, symbol.mergeGroup, symbol.textOverlap);
+                    it.set(x, y, symbol.bitmap, 0, 0f, true, symbol.mergeGap, symbol.mergeGroup, symbol.mergeGroupGap, symbol.textOverlap);
                 else
-                    it.set(x, y, symbol.texture, 0, 0f, true, symbol.mergeGap, symbol.mergeGroup, symbol.textOverlap);
+                    it.set(x, y, symbol.texture, 0, 0f, true, symbol.mergeGap, symbol.mergeGroup, symbol.mergeGroupGap, symbol.textOverlap);
                 ld.symbols.push(it);
             } else if (element.type == POINT) {
                 for (int i = 0, n = element.getNumPoints(); i < n; i++) {
@@ -171,9 +171,9 @@ public class LabelTileLoaderHook implements TileLoaderThemeHook {
 
                     SymbolItem it = SymbolItem.pool.get();
                     if (symbol.bitmap != null)
-                        it.set(p.x, p.y, symbol.bitmap, 0, 0f, true, symbol.mergeGap, symbol.mergeGroup, symbol.textOverlap);
+                        it.set(p.x, p.y, symbol.bitmap, 0, 0f, true, symbol.mergeGap, symbol.mergeGroup, symbol.mergeGroupGap, symbol.textOverlap);
                     else
-                        it.set(p.x, p.y, symbol.texture, 0, 0f, true, symbol.mergeGap, symbol.mergeGroup, symbol.textOverlap);
+                        it.set(p.x, p.y, symbol.texture, 0, 0f, true, symbol.mergeGap, symbol.mergeGroup, symbol.mergeGroupGap, symbol.textOverlap);
                     ld.symbols.push(it);
                 }
             }

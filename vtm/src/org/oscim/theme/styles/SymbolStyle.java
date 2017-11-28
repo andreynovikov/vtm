@@ -39,6 +39,7 @@ public final class SymbolStyle extends RenderStyle<SymbolStyle> {
     public final int repeatGap;
     public final int mergeGap;
     public final String mergeGroup;
+    public final int mergeGroupGap;
     public final boolean textOverlap;
 
     public SymbolStyle(Bitmap bitmap) {
@@ -66,6 +67,7 @@ public final class SymbolStyle extends RenderStyle<SymbolStyle> {
         this.repeatGap = 0;
         this.mergeGap = -1;
         this.mergeGroup = null;
+        this.mergeGroupGap = -1;
         this.textOverlap = true;
     }
 
@@ -84,6 +86,7 @@ public final class SymbolStyle extends RenderStyle<SymbolStyle> {
         this.repeatGap = b.repeatGap;
         this.mergeGap = b.mergeGap;
         this.mergeGroup = b.mergeGroup;
+        this.mergeGroupGap = b.mergeGroupGap;
         this.textOverlap = b.textOverlap;
     }
 
@@ -122,6 +125,7 @@ public final class SymbolStyle extends RenderStyle<SymbolStyle> {
         public int repeatGap;
         public int mergeGap;
         public String mergeGroup;
+        public int mergeGroupGap;
         public boolean textOverlap = true;
 
         public SymbolBuilder() {
@@ -145,6 +149,7 @@ public final class SymbolStyle extends RenderStyle<SymbolStyle> {
             this.repeatGap = symbol.repeatGap;
             this.mergeGap = symbol.mergeGap;
             this.mergeGroup = symbol.mergeGroup;
+            this.mergeGroupGap = symbol.mergeGroupGap;
             this.textOverlap = symbol.textOverlap;
 
             return self();
@@ -202,6 +207,13 @@ public final class SymbolStyle extends RenderStyle<SymbolStyle> {
             this.mergeGroup = mergeGroup;
             if (this.mergeGap == -1)
                 this.mergeGap = 0;
+            if (this.mergeGroupGap == -1)
+                this.mergeGroupGap = 0;
+            return self();
+        }
+
+        public T mergeGroupGap(int mergeGroupGap) {
+            this.mergeGroupGap = mergeGroupGap;
             return self();
         }
 
@@ -225,6 +237,7 @@ public final class SymbolStyle extends RenderStyle<SymbolStyle> {
             repeatGap = 0;
             mergeGap = -1;
             mergeGroup = null;
+            mergeGroupGap = -1;
             textOverlap = true;
 
             return self();

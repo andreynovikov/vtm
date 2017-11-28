@@ -1107,6 +1107,9 @@ public class XmlThemeBuilder extends DefaultHandler {
             else if ("merge-group".equals(name))
                 b.mergeGroup(value);
 
+            else if ("merge-group-gap".equals(name))
+                b.mergeGroupGap = (int) (Integer.parseInt(value) * mScale);
+
             else if ("text-overlap".equals(name))
                 b.textOverlap = parseBoolean(value);
 
