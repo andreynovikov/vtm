@@ -683,10 +683,6 @@ public class LabelPlacement {
         return true;
     }
 
-    public void clear() {
-        mSymbolPool.releaseAll(mSymbols);
-    }
-
     public void cleanup() {
         mLabels = (Label) mLabelPool.releaseAll(mLabels);
         mSymbols = (Symbol) mSymbolPool.releaseAll(mSymbols);
